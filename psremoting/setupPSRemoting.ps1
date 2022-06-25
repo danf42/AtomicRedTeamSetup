@@ -13,7 +13,7 @@ Instructions are from https://docs.microsoft.com/en-us/powershell/scripting/inst
 # Download and Install PowerShell Core
 Write-Host "[*] Downloading PowerShell"
 
-$soureFile = 'https://github.com/PowerShell/PowerShell/releases/download/v7.2.4/PowerShell-7.2.4-win-x64.msi'
+$soureFile = 'https://github.com/PowerShell/PowerShell/releases/download/v7.2.5/PowerShell-7.2.5-win-x64.msi'
 $destinationFile = $env:temp + '\powershell.msi'
 
 #Invoke-WebRequest -Uri $soureFile -OutFile $destinationFile

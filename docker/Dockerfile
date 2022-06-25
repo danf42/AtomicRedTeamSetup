@@ -21,7 +21,9 @@
 FROM alpine:3.14
 
 # install the requirements
-RUN apk add --no-cache \
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache \
     ca-certificates \
     less \
     ncurses-terminfo-base \
@@ -34,42 +36,23 @@ RUN apk add --no-cache \
     userspace-rcu \
     zlib \
     icu-libs \
-    curl
+    curl \
+    openssh
 
-RUN apk -X https://dl-cdn.alpinelinux.org/alpine/edge/main add --no-cache \
-    lttng-ust
+# Install PowerShell core
+RUN curl -L https://github.com/PowerShell/PowerShell/releases/download/v7.2.5/powershell-7.2.5-linux-alpine-x64.tar.gz -o /tmp/powershell.tar.gz && \
+    mkdir -p /opt/microsoft/powershell/7 && \
+    tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7 && \
+    chmod +x /opt/microsoft/powershell/7/pwsh && \
+    ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh && \
+    rm /tmp/powershell.tar.gz
 
-# Download the powershell '.tar.gz' archive
-RUN curl -L https://github.com/PowerShell/PowerShell/releases/download/v7.2.4/powershell-7.2.4-linux-alpine-x64.tar.gz -o /tmp/powershell.tar.gz
-
-# Create the target folder where powershell will be placed
-RUN mkdir -p /opt/microsoft/powershell/7
-
-# Expand powershell to the target folder
-RUN tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7
-
-# Set execute permissions
-RUN chmod +x /opt/microsoft/powershell/7/pwsh
-
-# Create the symbolic link that points to pwsh
-RUN ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
-
-# Install openssh package for Powershell Remoting over SSH
-RUN apk add --no-cache openssh
-
-# Install Atomicredteam
-RUN pwsh -command "IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing); Install-AtomicRedTeam -getAtomics -Force;"
-
-# Download Attire-ExecutionLogger
-RUN mkdir -p ~/loggers
-RUN curl -L https://raw.githubusercontent.com/SecurityRiskAdvisors/invoke-atomic-attire-logger/main/Attire-ExecutionLogger.psm1 -o ~/loggers/Attire-ExecutionLogger.psm1
-
-# Load Invoke-AtomicRedTeam in profile
-RUN mkdir -p ~/.config/powershell/
-RUN echo -e 'Import-Module "/root/AtomicRedTeam/invoke-atomicredteam/Invoke-AtomicRedTeam.psd1" -Force\nImport-Module "/root/loggers/Attire-ExecutionLogger.psm1" -Force' > ~/.config/powershell/profile.ps1
-
-# Cleanup
-RUN rm /tmp/powershell.tar.gz
+# Install Atomicredteam, Attire-ExecutionLogger, and Load Invoke-AtomicRedTeam in profile
+RUN pwsh -command "IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing); Install-AtomicRedTeam -getAtomics -Force;" && \
+    mkdir -p ~/loggers && \
+    curl -L https://raw.githubusercontent.com/SecurityRiskAdvisors/invoke-atomic-attire-logger/main/Attire-ExecutionLogger.psm1 -o ~/loggers/Attire-ExecutionLogger.psm1 && \
+    mkdir -p ~/.config/powershell/ && \
+    echo -e 'Import-Module "/root/AtomicRedTeam/invoke-atomicredteam/Invoke-AtomicRedTeam.psd1" -Force\nImport-Module "/root/loggers/Attire-ExecutionLogger.psm1" -Force' > ~/.config/powershell/profile.ps1
 
 # Start PowerShell
 ENTRYPOINT ["pwsh"]

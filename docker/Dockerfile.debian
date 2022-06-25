@@ -21,33 +21,25 @@
 FROM debian:latest
 
 # Install system components
-RUN apt update && apt install -y curl gnupg apt-transport-https gss-ntlmssp
+RUN apt update && \
+    apt install -y curl gnupg apt-transport-https gss-ntlmssp openssh-client
 
 # Import the public repository GPG keys
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-bullseye-prod bullseye main" > /etc/apt/sources.list.d/microsoft.list' && \
+    apt update && apt install -y powershell && \
+    rm /tmp/powershell.tar.gz
 
-# Register the Microsoft Product feed
-RUN sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-bullseye-prod bullseye main" > /etc/apt/sources.list.d/microsoft.list'
-
-# Install PowerShell
-RUN apt update && apt install -y powershell
-
-# Required for Powershell Remoting over SSH
-RUN apt install -y openssh-client
-
-# Install Atomicredteam
-RUN pwsh -command "IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing); Install-AtomicRedTeam -getAtomics -Force;"
-
-# Load Invoke-AtomicRedTeam in profile
-RUN mkdir -p ~/.config/powershell/
-RUN echo 'Import-Module "/root/AtomicRedTeam/invoke-atomicredteam/Invoke-AtomicRedTeam.psd1" -Force' > ~/.config/powershell/profile.ps1
+# Install Atomicredteam, Attire-ExecutionLogger, and Load Invoke-AtomicRedTeam in profile
+RUN pwsh -command "IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing); Install-AtomicRedTeam -getAtomics -Force;" && \
+    mkdir -p ~/loggers && \
+    curl -L https://raw.githubusercontent.com/SecurityRiskAdvisors/invoke-atomic-attire-logger/main/Attire-ExecutionLogger.psm1 -o ~/loggers/Attire-ExecutionLogger.psm1 && \
+    mkdir -p ~/.config/powershell/ && \
+    echo -e 'Import-Module "/root/AtomicRedTeam/invoke-atomicredteam/Invoke-AtomicRedTeam.psd1" -Force\nImport-Module "/root/loggers/Attire-ExecutionLogger.psm1" -Force' > ~/.config/powershell/profile.ps1
 
 # Add For WSMan Authentication Support
-RUN pwsh -Command "Install-Module -Name PSWSMan -Force"
-RUN pwsh -Command "Install-WSMan"
-
-# Cleanup
-RUN rm /tmp/powershell.tar.gz
+RUN pwsh -Command "Install-Module -Name PSWSMan -Force" && \
+    pwsh -Command "Install-WSMan"
 
 # Start PowerShell
 ENTRYPOINT ["pwsh"]

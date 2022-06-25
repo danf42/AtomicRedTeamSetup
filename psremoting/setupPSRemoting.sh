@@ -19,7 +19,7 @@ echo "${BLUE}[*] Install dependency packages ${RESET}"
 apt install -y curl
 
 echo "${BLUE}[*] Installing powershell core ${RESET}"
-curl -L https://github.com/PowerShell/PowerShell/releases/download/v7.2.4/powershell-lts_7.2.4-1.deb_amd64.deb -o /tmp/powershell.deb
+curl -L https://github.com/PowerShell/PowerShell/releases/download/v7.2.5/powershell-lts_7.2.5-1.deb_amd64.deb -o /tmp/powershell.deb
 dpkg -i /tmp/powershell.deb
 rm /tmp/powershell.deb
 
