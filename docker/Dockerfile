@@ -20,6 +20,9 @@
 
 FROM alpine:3.14
 
+# 
+ENV PWS_VER=7.2.5
+
 # install the requirements
 RUN apk update && \
     apk upgrade && \
@@ -40,7 +43,7 @@ RUN apk update && \
     openssh
 
 # Install PowerShell core
-RUN curl -L https://github.com/PowerShell/PowerShell/releases/download/v7.2.5/powershell-7.2.5-linux-alpine-x64.tar.gz -o /tmp/powershell.tar.gz && \
+RUN curl -L https://github.com/PowerShell/PowerShell/releases/download/v${PWS_VER}/powershell-${PWS_VER}-linux-alpine-x64.tar.gz -o /tmp/powershell.tar.gz && \
     mkdir -p /opt/microsoft/powershell/7 && \
     tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7 && \
     chmod +x /opt/microsoft/powershell/7/pwsh && \
