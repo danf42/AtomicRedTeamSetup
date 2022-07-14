@@ -4,14 +4,14 @@
 #
 # Usage:
 # Build the container
-# > docker build -t pwsh .
+# > docker build -t atomicred .
 #
 # Running container
-# > docker run -it --rm pwsh
+# > docker run -it --rm atomicred
 # 
 # or to persist the container on exit
-# > docker run -it --name mypwsh pwsh
-# > docker start -i mypwsh
+# > docker run -it --name atomicred atomicred
+# > docker start -i atomicred
 #
 # Verify Invoke-Atomicredteam module was importated successfully
 # > Invoke-AtomicTest T1113 -ShowDetails
